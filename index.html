@@ -23,18 +23,25 @@
       font-size: 5rem;
       cursor: grab;
       user-select: none;
-      transition: transform 0.2s;
+      transition: transform 0.2s ease;
     }
 
     #boy { top: 60%; left: 20%; }
     #girl { top: 60%; left: 60%; }
     #phone { top: 30%; left: 60%; }
 
-    .hugged {
-      animation: hug 0.3s ease-in-out infinite alternate;
+    #heart {
+      position: absolute;
+      font-size: 2.5rem;
+      display: none;
+      z-index: 5;
     }
 
-    @keyframes hug {
+    .hugged {
+      animation: hugbounce 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes hugbounce {
       0% { transform: scale(1); }
       100% { transform: scale(1.1); }
     }
@@ -44,15 +51,16 @@
 
   <h1>Palak or Phone</h1>
 
-  <!-- Full-body boy and girl -->
-  <div id="boy" class="emoji">🧑🏻‍🦰</div>
-  <div id="girl" class="emoji">👩🏻‍🦱</div>
+  <div id="boy" class="emoji">👦</div>
+  <div id="girl" class="emoji">👧</div>
   <div id="phone" class="emoji">📱</div>
+  <div id="heart">❤️</div>
 
   <script>
     const boy = document.getElementById('boy');
     const girl = document.getElementById('girl');
     const phone = document.getElementById('phone');
+    const heart = document.getElementById('heart');
 
     let offsetX, offsetY;
     let dragging = false;
@@ -82,22 +90,33 @@
       const girlRect = girl.getBoundingClientRect();
       const phoneRect = phone.getBoundingClientRect();
 
+      // Girl proximity
       const distToGirl = Math.hypot(
         boyRect.left - girlRect.left,
         boyRect.top - girlRect.top
       );
 
       if (distToGirl < 100) {
-        // Move boy next to girl and show hug animation
-        boy.style.left = `${girl.offsetLeft - 60}px`;
-        boy.style.top = `${girl.offsetTop}px`;
+        // Snap boy next to girl
+        const girlX = girl.offsetLeft;
+        const girlY = girl.offsetTop;
+        boy.style.left = `${girlX - 60}px`;
+        boy.style.top = `${girlY}px`;
+
+        // Heart in between
+        heart.style.display = 'block';
+        heart.style.left = `${girlX - 25}px`;
+        heart.style.top = `${girlY - 30}px`;
+
         boy.classList.add('hugged');
         girl.classList.add('hugged');
       } else {
         boy.classList.remove('hugged');
         girl.classList.remove('hugged');
+        heart.style.display = 'none';
       }
 
+      // Phone repels
       const distToPhone = Math.hypot(
         boyRect.left - phoneRect.left,
         boyRect.top - phoneRect.top
