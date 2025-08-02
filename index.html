@@ -30,8 +30,13 @@
     #girl { top: 60%; left: 60%; }
     #phone { top: 30%; left: 60%; }
 
-    .hugging {
-      transform: scale(1.3);
+    .hugged {
+      animation: hug 0.3s ease-in-out infinite alternate;
+    }
+
+    @keyframes hug {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.1); }
     }
   </style>
 </head>
@@ -39,8 +44,9 @@
 
   <h1>Palak or Phone</h1>
 
-  <div id="boy" class="emoji">👦</div>
-  <div id="girl" class="emoji">👧</div>
+  <!-- Full-body boy and girl -->
+  <div id="boy" class="emoji">🧑🏻‍🦰</div>
+  <div id="girl" class="emoji">👩🏻‍🦱</div>
   <div id="phone" class="emoji">📱</div>
 
   <script>
@@ -76,29 +82,28 @@
       const girlRect = girl.getBoundingClientRect();
       const phoneRect = phone.getBoundingClientRect();
 
-      // Distance between boy and girl
       const distToGirl = Math.hypot(
         boyRect.left - girlRect.left,
         boyRect.top - girlRect.top
       );
 
-      if (distToGirl < 80) {
-        // Hug
-        girl.classList.add('hugging');
-        boy.classList.add('hugging');
+      if (distToGirl < 100) {
+        // Move boy next to girl and show hug animation
+        boy.style.left = `${girl.offsetLeft - 60}px`;
+        boy.style.top = `${girl.offsetTop}px`;
+        boy.classList.add('hugged');
+        girl.classList.add('hugged');
       } else {
-        girl.classList.remove('hugging');
-        boy.classList.remove('hugging');
+        boy.classList.remove('hugged');
+        girl.classList.remove('hugged');
       }
 
-      // Distance between boy and phone
       const distToPhone = Math.hypot(
         boyRect.left - phoneRect.left,
         boyRect.top - phoneRect.top
       );
 
       if (distToPhone < 120) {
-        // Phone repels
         const dx = phoneRect.left - boyRect.left;
         const dy = phoneRect.top - boyRect.top;
         const angle = Math.atan2(dy, dx);
