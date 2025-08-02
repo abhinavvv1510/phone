@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Palak or Phone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       background-color: #fff8f0;
@@ -10,17 +11,18 @@
       padding: 0;
       font-family: sans-serif;
       overflow: hidden;
+      touch-action: none;
     }
 
     h1 {
       text-align: center;
-      font-size: 3rem;
-      margin-top: 30px;
+      font-size: 2.5rem;
+      margin-top: 20px;
     }
 
     .emoji {
       position: absolute;
-      font-size: 5rem;
+      font-size: 4rem;
       cursor: grab;
       user-select: none;
       transition: transform 0.3s ease;
@@ -32,7 +34,7 @@
 
     #heart {
       position: absolute;
-      font-size: 3rem;
+      font-size: 2.5rem;
       display: none;
       z-index: 5;
     }
@@ -63,49 +65,50 @@
     const heart = document.getElementById('heart');
 
     let dragging = false;
+    let currentTarget = null;
     let offsetX = 0;
     let offsetY = 0;
 
-    boy.addEventListener('mousedown', (e) => {
+    // DRAG START
+    function startDrag(e, target) {
       dragging = true;
-      offsetX = e.clientX - boy.offsetLeft;
-      offsetY = e.clientY - boy.offsetTop;
-    });
+      currentTarget = target;
 
-    document.addEventListener('mouseup', () => {
-      dragging = false;
-    });
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-    document.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
+      offsetX = clientX - target.offsetLeft;
+      offsetY = clientY - target.offsetTop;
+    }
 
-      // Move boy
-      const x = e.clientX - offsetX;
-      const y = e.clientY - offsetY;
-      boy.style.left = `${x}px`;
-      boy.style.top = `${y}px`;
+    // DRAG MOVE
+    function onMove(e) {
+      if (!dragging || !currentTarget) return;
 
-      // Get positions
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const x = clientX - offsetX;
+      const y = clientY - offsetY;
+
+      currentTarget.style.left = `${x}px`;
+      currentTarget.style.top = `${y}px`;
+
       const boyRect = boy.getBoundingClientRect();
       const girlRect = girl.getBoundingClientRect();
       const phoneRect = phone.getBoundingClientRect();
 
-      // Check if boy is near girl (hug condition)
+      // HUG detection
       const dxGirl = girlRect.left - boyRect.left;
       const dyGirl = girlRect.top - boyRect.top;
       const distToGirl = Math.sqrt(dxGirl * dxGirl + dyGirl * dyGirl);
 
-      if (distToGirl < 120) {
-        // Position boy next to girl
+      if (distToGirl < 100) {
         boy.style.left = `${girl.offsetLeft - 60}px`;
         boy.style.top = `${girl.offsetTop}px`;
-
-        // Show heart
         heart.style.display = 'block';
         heart.style.left = `${girl.offsetLeft - 20}px`;
         heart.style.top = `${girl.offsetTop - 40}px`;
-
-        // Animate hug
         boy.classList.add('hugged');
         girl.classList.add('hugged');
       } else {
@@ -114,24 +117,38 @@
         girl.classList.remove('hugged');
       }
 
-      // Check if boy is near phone (repel)
+      // PHONE repel
       const dxPhone = phoneRect.left - boyRect.left;
       const dyPhone = phoneRect.top - boyRect.top;
       const distToPhone = Math.sqrt(dxPhone * dxPhone + dyPhone * dyPhone);
 
       if (distToPhone < 100) {
         const angle = Math.atan2(dyPhone, dxPhone);
-        const repelDistance = 100;
-        const newX = phone.offsetLeft + Math.cos(angle) * repelDistance;
-        const newY = phone.offsetTop + Math.sin(angle) * repelDistance;
-
-        // Keep phone on screen
+        const repelDist = 100;
+        const newX = phone.offsetLeft + Math.cos(angle) * repelDist;
+        const newY = phone.offsetTop + Math.sin(angle) * repelDist;
         const boundedX = Math.max(0, Math.min(window.innerWidth - 50, newX));
         const boundedY = Math.max(0, Math.min(window.innerHeight - 50, newY));
         phone.style.left = `${boundedX}px`;
         phone.style.top = `${boundedY}px`;
       }
-    });
+    }
+
+    // DRAG END
+    function endDrag() {
+      dragging = false;
+      currentTarget = null;
+    }
+
+    // MOUSE EVENTS
+    boy.addEventListener('mousedown', (e) => startDrag(e, boy));
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', endDrag);
+
+    // TOUCH EVENTS
+    boy.addEventListener('touchstart', (e) => startDrag(e, boy));
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', endDrag);
   </script>
 </body>
 </html>
